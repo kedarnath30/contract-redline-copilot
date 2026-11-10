@@ -191,6 +191,33 @@ several signals because a single one can miss a real shift.
 * **Citation correctness:** the cited rule matches the gold clause type, the clause span equals
   the gold offsets, and the evidence quote equals the source text at its offsets.
 
+## Known failure modes (blind set, n=24)
+
+Independent review of the 10-clause spot check (all 10 gold labels held)
+found four tool misses, all on risk judgement — clause-type accuracy is
+0.958, risk accuracy 0.619:
+
+- **Over-eager escalation on truncated clauses (b009).** The tool escalates
+  when clause text ends at a page break, even when the operative facts are
+  fully visible: a 1-year auto-renewal with a 6-month non-renewal notice is
+  non-compliant under REN-01 (>90 days), but the tool escalated instead of
+  judging it.
+- **Cross-sentence context blindness (b012).** The one-sidedness check is
+  defeated by "either party" appearing in an unrelated sentence — here the
+  1-year suit-limitation sentence — so a one-sided liability exclusion was
+  judged fallback instead of non-compliant.
+- **Fixed regex window (b007).** The auto-renewal fallback check looks only
+  80 characters past "unless"; in this clause the notice wording sits
+  further away, so no signal matched and the clause escalated instead of
+  fallback.
+- **Incorporation-by-reference escalation (b006).** The tool escalates
+  whenever terms are incorporated from another document, even when the
+  clause itself states the operative facts — mutual obligations surviving
+  5 years, compliant under CONF-01.
+
+Blind-set scores are published as measured and are not adjusted by this
+section.
+
 ## Limitations
 
 * **Small, single-annotator gold sets.** The labels are mine, not a lawyer's. On a 24-clause blind
