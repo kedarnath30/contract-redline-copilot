@@ -1,7 +1,9 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 \
-    REDLINE_BACKEND=offline
+    REDLINE_BACKEND=offline \
+    REDLINE_DATA_DIR=/app/data \
+    REDLINE_PLAYBOOK=/app/playbook/playbook.yaml
 WORKDIR /app
 
 COPY pyproject.toml README.md LICENSE ./
