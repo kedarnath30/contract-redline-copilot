@@ -1,0 +1,278 @@
+# Example company contract playbook (illustrative, not legal advice).
+#
+# Each rule encodes one clause type the way a legal team would brief a reviewer:
+#   preferred     - the position we want
+#   fallback      - an acceptable compromise: accept as-is, optional nudge toward preferred
+#   unacceptable  - must be redlined using the approved language
+#
+# `checks` are the machine-readable signals the offline backend uses. Each is a
+# case-insensitive regex. Evaluation order: unacceptable -> fallback -> preferred.
+# If no check matches, the clause is escalated to a human instead of guessed.
+# `requires_absent` lets a check fire only when another pattern is NOT present
+# (e.g. "one-sided exclusion" only when no "either party / neither party" wording exists).
+
+version: "2026.11"
+owner: "Example Co. Legal (illustrative)"
+perspective: >-
+  Balanced: this playbook favours mutual, bounded obligations. It does not know which party
+  the reviewer represents, so one-sided terms are treated as risks to be checked by a human
+  reviewer when the redline is accepted.
+
+rules:
+  - id: LOL-01
+    clause_type: limitation_of_liability
+    title: Limitation of liability
+    preferred: >-
+      Mutual exclusion of indirect and consequential damages, plus a mutual cap of no less
+      than the fees paid or payable in the twelve (12) months before the claim.
+    fallback:
+      - Mutual exclusion of consequential damages without a stated cap.
+      - Mutual cap below twelve months of fees.
+    unacceptable:
+      - A limitation or exclusion that protects only one party.
+      - Liability expressly unlimited for one party.
+    approved_language: >-
+      EXCEPT FOR A PARTY'S CONFIDENTIALITY AND INDEMNIFICATION OBLIGATIONS, IN NO EVENT SHALL
+      EITHER PARTY BE LIABLE TO THE OTHER FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL
+      OR PUNITIVE DAMAGES, AND EACH PARTY'S AGGREGATE LIABILITY UNDER THIS AGREEMENT SHALL NOT
+      EXCEED THE FEES PAID OR PAYABLE UNDER THIS AGREEMENT IN THE TWELVE (12) MONTHS PRECEDING
+      THE EVENT GIVING RISE TO THE CLAIM.
+    fallback_language: >-
+      Each party's aggregate liability under this Agreement shall not exceed the fees paid or
+      payable in the twelve (12) months preceding the claim.
+    checks:
+      unacceptable:
+        - id: LOL-01.U1
+          description: Limitation names a single party and has no mutual wording.
+          pattern: '(liability of|liable|liability to)\b'
+          requires_absent: '\b(either|neither|each|any) party\b|\bneither the\b.{0,60}\bnor\b|\bparties\b.{0,40}\bliab|\bor [A-Z]{2,}''?S liability'
+        - id: LOL-01.U2
+          description: Liability expressly unlimited.
+          pattern: '\bunlimited liability\b|\bshall not be limited\b'
+      fallback:
+        - id: LOL-01.F1
+          description: Mutual cap below twelve months of fees.
+          pattern: '\b(three|six|one|3|6|1)\s*(\(\d+\)\s*)?months?\b.{0,80}(preceding|prior)'
+        - id: LOL-01.F2
+          description: Mutual damages exclusion with no stated cap.
+          pattern: '\bconsequential\b'
+          requires_absent: '\bshall not exceed\b|\bnot to exceed\b|(?<!not )\blimited to\b|\bmaximum\b'
+      preferred:
+        - id: LOL-01.P1
+          description: Mutual cap tied to twelve months or annual fees.
+          pattern: '(twelve|12)\s*(\(12\)\s*)?months?|annual'
+
+  - id: IND-01
+    clause_type: indemnification
+    title: Indemnification
+    preferred: Mutual indemnification, each party for its own acts, limited to third-party claims.
+    fallback:
+      - One-way indemnity that is limited to third-party claims.
+    unacceptable:
+      - One-way indemnity for any loss, including direct claims between the parties.
+    approved_language: >-
+      Each party (the "Indemnifying Party") shall defend, indemnify and hold harmless the other
+      party and its officers, directors and employees from and against any losses, damages and
+      reasonable attorneys' fees arising from any third-party claim to the extent caused by the
+      Indemnifying Party's breach of this Agreement, negligence or willful misconduct.
+    fallback_language: >-
+      The indemnification obligations in this Section shall be reciprocal.
+    checks:
+      unacceptable:
+        - id: IND-01.U1
+          description: One-way indemnity not limited to third-party claims.
+          pattern: 'indemnif'
+          requires_absent: 'third[- ]part|\beach party\b|\beither party\b|indemnifying party'
+        - id: IND-01.U2
+          description: Indemnity expressly covers claims between the parties.
+          pattern: 'claim between the parties|whether or not .{0,30}third'
+      fallback:
+        - id: IND-01.F1
+          description: One-way indemnity limited to third-party claims.
+          pattern: 'third[- ]part'
+          requires_absent: '\beach party\b|\beither party\b|indemnifying party'
+      preferred:
+        - id: IND-01.P1
+          description: Mutual indemnification.
+          pattern: '\beach party\b.{0,80}indemnif|\beither party\b.{0,80}indemnif|indemnifying party'
+
+  - id: GOV-01
+    clause_type: governing_law
+    title: Governing law
+    preferred: Laws of the State of Delaware or the State of New York.
+    fallback:
+      - Laws of another U.S. state.
+    unacceptable:
+      - Non-U.S. governing law.
+    approved_language: >-
+      This Agreement shall be governed by and construed in accordance with the laws of the
+      State of Delaware, without regard to its conflict of laws principles.
+    fallback_language: ""
+    checks:
+      unacceptable:
+        - id: GOV-01.U1
+          description: Non-U.S. governing law.
+          pattern: 'laws? of (the )?(england|wales|spain|france|germany|switzerland|japan|china|the people''s republic|hong kong|singapore|india|canada|ontario|british columbia|israel|ireland|the netherlands|italy|korea|australia|mexico|brazil|scotland|sweden|united kingdom)|english law|\bP\.?R\.?C\.? law'
+      fallback:
+        - id: GOV-01.F1
+          description: Another U.S. state.
+          pattern: '(state|commonwealth) of (?!delaware|new york)[a-z]+'
+      preferred:
+        - id: GOV-01.P1
+          description: Delaware or New York law.
+          pattern: '(state of )?(delaware|new york)'
+
+  - id: REN-01
+    clause_type: auto_renewal
+    title: Renewal
+    preferred: No automatic renewal; renewal only by mutual written agreement or affirmative approval.
+    fallback:
+      - Automatic renewal that either party can stop with notice of ninety (90) days or less.
+    unacceptable:
+      - Automatic renewal with no stated way to opt out.
+      - Non-renewal notice longer than ninety (90) days, or a unilateral renewal right.
+    approved_language: >-
+      This Agreement may be renewed for successive one (1) year terms only by the mutual written
+      agreement of the parties.
+    fallback_language: >-
+      Either party may elect not to renew by written notice given at least thirty (30) days
+      before the end of the then-current term.
+    checks:
+      unacceptable:
+        - id: REN-01.U1
+          description: Automatic renewal with no non-renewal or termination mechanism.
+          pattern: 'automatic(ally)?\b.{0,40}renew|renew(ed|al)?\b.{0,30}(tacit|automatic)|year to year|successive'
+          requires_absent: 'unless|notice|terminat|mutual|approv|elect'
+        - id: REN-01.U2
+          description: Non-renewal notice longer than 90 days.
+          pattern: '(six|nine|twelve|6|9|12)\s*(\(\d+\)\s*)?months?.{0,60}(prior|before|notice)|(1[2-9]\d|[2-9]\d\d)\s*(\(\d+\)\s*)?days'
+      fallback:
+        - id: REN-01.F1
+          description: Auto-renewal with a non-renewal notice of 90 days or less.
+          pattern: '(unless|until)\b.{0,80}(notice|notif)'
+          requires_absent: '\[\*+\]|\[\s*\*\s*\]'
+      preferred:
+        - id: REN-01.P1
+          description: Renewal only by mutual agreement or affirmative approval.
+          pattern: 'mutual(ly)?\b.{0,30}(written )?agree|specifically approved|upon (the )?written agreement'
+
+  - id: TFC-01
+    clause_type: termination_for_convenience
+    title: Termination for convenience
+    preferred: Either party may terminate for convenience on at least thirty (30) days' notice.
+    fallback:
+      - A mutual right with less than thirty (30) days' notice.
+    unacceptable:
+      - Only one party may terminate for convenience.
+    approved_language: >-
+      Either party may terminate this Agreement for convenience upon thirty (30) days' prior
+      written notice to the other party.
+    fallback_language: >-
+      Any termination for convenience requires at least thirty (30) days' prior written notice.
+    checks:
+      unacceptable:
+        - id: TFC-01.U1
+          description: Right to terminate held by one party only.
+          pattern: 'terminat'
+          requires_absent: '\b(either|each|any) party\b|\beither\b.{0,40}\bor\b|\bparties\b|\band\b [A-Z][A-Za-z]+ may terminate|\bor [A-Z]{2,} giving'
+      fallback:
+        - id: TFC-01.F1
+          description: Mutual right with under thirty days' notice.
+          pattern: '\b([1-9]|[12]\d|ten|fifteen|twenty)\s*(\(\d+\)\s*)?days'
+          requires_absent: '\b(3\d|[4-9]\d|\d{3})\s*(\(\d+\)\s*)?days|thirty|sixty|ninety|months?'
+      preferred:
+        - id: TFC-01.P1
+          description: Mutual right with 30+ days' notice.
+          pattern: 'thirty|sixty|ninety|\b(3\d|[4-9]\d)\s*(\(\d+\)\s*)?days|months?'
+
+  - id: NC-01
+    clause_type: non_compete
+    title: Non-compete
+    preferred: Restriction limited to the term of the agreement and to the specific products or field.
+    fallback:
+      - Post-termination restriction of twelve (12) months or less, limited to competing products.
+    unacceptable:
+      - Post-termination restriction longer than twelve months, or an unlimited scope.
+    approved_language: >-
+      During the term of this Agreement only, neither party shall market products that directly
+      compete with the products that are the subject of this Agreement.
+    fallback_language: >-
+      In no event shall this restriction extend beyond twelve (12) months after termination.
+    checks:
+      unacceptable:
+        - id: NC-01.U1
+          description: Post-termination restriction longer than 12 months.
+          pattern: '(two|three|five|2|3|5)\s*(\(\d+\)\s*)?years?\s*(after|following|from)|(1[3-9]|[2-9]\d)\s*(\(\d+\)\s*)?months?\s*(after|following)'
+        - id: NC-01.U2
+          description: Unlimited scope.
+          pattern: 'any business whatsoever|in perpetuity|at any time thereafter'
+      fallback:
+        - id: NC-01.F1
+          description: Post-termination restriction of 12 months or less.
+          pattern: '(after|following)\b.{0,30}(expiration|termination)|(expiration|termination).{0,20}thereafter|\b(one|1|twelve|12|three|3|six|6)\s*(\(\d+\)\s*)?(years?|months?)\s*(after|following)'
+      preferred:
+        - id: NC-01.P1
+          description: Restriction limited to the term.
+          pattern: 'during the term|term of this agreement|while this agreement'
+
+  - id: IPA-01
+    clause_type: ip_assignment
+    title: IP ownership and assignment
+    preferred: >-
+      Assignment limited to deliverables created under the agreement, with each party keeping
+      its pre-existing (background) IP.
+    fallback:
+      - Assignment of work product created under the agreement, without an express pre-existing IP carve-out.
+    unacceptable:
+      - Assignment that reaches pre-existing IP, a whole field, or future derivative works beyond the work performed.
+    approved_language: >-
+      All deliverables created specifically for the customer under this Agreement shall be owned
+      by the customer. Each party retains all right, title and interest in its pre-existing
+      intellectual property and in improvements to it that are not deliverables.
+    fallback_language: >-
+      Nothing in this Section assigns or transfers either party's pre-existing intellectual
+      property.
+    checks:
+      unacceptable:
+        - id: IPA-01.U1
+          description: Reaches future derivative works, a whole field, or pre-existing IP.
+          pattern: 'future derivative|all derivative works|protected field|related to .{0,20}the field|pre-existing .{0,40}(hereby )?assign'
+      fallback:
+        - id: IPA-01.F1
+          description: Work product assigned without a pre-existing IP carve-out.
+          pattern: 'own(ed)?\b|assign|propert'
+          requires_absent: 'exclud|pre-existing|background|retain|except for'
+      preferred:
+        - id: IPA-01.P1
+          description: Deliverables only, with a carve-out.
+          pattern: 'exclud|pre-existing|background|retain'
+
+  - id: CONF-01
+    clause_type: confidentiality
+    title: Confidentiality
+    preferred: Mutual obligations that survive at least two (2) years after termination or have no end date.
+    fallback:
+      - One-way obligations, or survival between one and two years.
+    unacceptable:
+      - Obligations end at termination, or survive less than one year.
+    approved_language: >-
+      Each party shall hold the other party's Confidential Information in confidence and use it
+      only to perform this Agreement. These obligations survive for five (5) years after
+      termination, and for trade secrets for as long as they remain trade secrets.
+    fallback_language: >-
+      The obligations in this Section are mutual and survive for at least two (2) years after
+      termination.
+    checks:
+      unacceptable:
+        - id: CONF-01.U1
+          description: Obligations end at termination or within a year.
+          pattern: 'until (the )?(termination|expiration)|shall (terminate|expire) upon (the )?(termination|expiration)|for (a period of )?(six|three|6|3)\s*(\(\d+\)\s*)?months (after|following)'
+      fallback:
+        - id: CONF-01.F1
+          description: Obligations run one way only.
+          pattern: 'confiden'
+          requires_absent: '\b(each|either|neither|other) part(y|ies)\b|\bthe parties\b|\bmutual'
+      preferred:
+        - id: CONF-01.P1
+          description: Mutual obligations.
+          pattern: '\b(each|either|neither|other) part(y|ies)\b|\bthe parties\b|\bmutual'

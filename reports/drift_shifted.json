@@ -1,0 +1,94 @@
+{
+  "status": "ALERT",
+  "alerts": [
+    "clause_type_psi",
+    "clause_type_chi2",
+    "ocr_noise_rate"
+  ],
+  "checks": {
+    "clause_type_psi": {
+      "value": 0.802,
+      "threshold": 0.2,
+      "alert": true
+    },
+    "clause_type_chi2": {
+      "statistic": 91.88,
+      "p_value": 6.83e-16,
+      "threshold": 0.01,
+      "alert": true
+    },
+    "unknown_clause_rate": {
+      "reference": 0.4565,
+      "new": 0.3739,
+      "max_increase": 0.1,
+      "alert": false
+    },
+    "ocr_noise_rate": {
+      "reference": 0.0039,
+      "new": 0.3913,
+      "max_increase": 0.05,
+      "alert": true
+    },
+    "mean_type_confidence": {
+      "reference": 0.5259,
+      "new": 0.5769,
+      "max_drop": 0.1,
+      "alert": false
+    }
+  },
+  "reference": {
+    "n_documents": 16,
+    "n_segments": 771,
+    "type_counts": {
+      "auto_renewal": 16,
+      "confidentiality": 42,
+      "governing_law": 27,
+      "indemnification": 19,
+      "ip_assignment": 13,
+      "limitation_of_liability": 20,
+      "non_compete": 28,
+      "other": 234,
+      "termination_for_convenience": 20,
+      "unknown": 352
+    },
+    "unknown_rate": 0.4565,
+    "noise_rate": 0.0039,
+    "mean_confidence": 0.5259,
+    "noisy_examples": [
+      "Account Details for UBS AG: Currency:                USD Correspondent Bank:      UBS AG, STAMFORD BRANCH Swift Address:           UBSWUS33XXX Favour:          ",
+      "Phone: 203.719.1110 Pre Value Payments:      Pre Value Payment           203.719.1110                          Investigations: Post Value Payments:     Post Val",
+      "100 Liverpool Street                          London EC2M 2RH\n\nAddress for notices or communications to the Counterparty:"
+    ]
+  },
+  "new": {
+    "n_documents": 8,
+    "n_segments": 115,
+    "type_counts": {
+      "confidentiality": 1,
+      "governing_law": 15,
+      "indemnification": 13,
+      "ip_assignment": 3,
+      "limitation_of_liability": 17,
+      "non_compete": 1,
+      "other": 20,
+      "termination_for_convenience": 2,
+      "unknown": 43
+    },
+    "unknown_rate": 0.3739,
+    "noise_rate": 0.3913,
+    "mean_confidence": 0.5769,
+    "noisy_examples": [
+      "(a) So long as no default exists and is continuing hereunder or under the\ufffd Leasc, e|ther party may terminate this Agreement at any time upon ____________ (_____",
+      "7. \u00c2\u00a7   REPRESENTATIONS, WARRANTIES AND COVENANTS\n\n      7.1 Representations and Warranties.",
+      "9.    INDEMNITY\n\n      9.1 By TDA. TDA shall |ndemnify and hold harmless Smith, Smith's agent, and Smith\u00e2\u20ac\u2122s heirs, executors and\u00c3\u00a9 legal representatives from a"
+    ]
+  },
+  "thresholds": {
+    "psi": 0.2,
+    "chi2_p": 0.01,
+    "unknown_rate_increase": 0.1,
+    "noise_rate_increase": 0.05,
+    "confidence_drop": 0.1,
+    "min_type_confidence": 0.45
+  }
+}

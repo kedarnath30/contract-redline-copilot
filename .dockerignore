@@ -1,0 +1,11 @@
+.git
+.github
+.venv
+mlruns
+reports
+docs
+tests
+**/__pycache__
+.pytest_cache
+.ruff_cache
+data/cuad/heldout_candidates.jsonl

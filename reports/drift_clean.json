@@ -1,0 +1,87 @@
+{
+  "status": "OK",
+  "alerts": [],
+  "checks": {
+    "clause_type_psi": {
+      "value": 0.0285,
+      "threshold": 0.2,
+      "alert": false
+    },
+    "clause_type_chi2": {
+      "statistic": 7.864,
+      "p_value": 0.548,
+      "threshold": 0.01,
+      "alert": false
+    },
+    "unknown_clause_rate": {
+      "reference": 0.4565,
+      "new": 0.457,
+      "max_increase": 0.1,
+      "alert": false
+    },
+    "ocr_noise_rate": {
+      "reference": 0.0039,
+      "new": 0.0,
+      "max_increase": 0.05,
+      "alert": false
+    },
+    "mean_type_confidence": {
+      "reference": 0.5259,
+      "new": 0.5134,
+      "max_drop": 0.1,
+      "alert": false
+    }
+  },
+  "reference": {
+    "n_documents": 16,
+    "n_segments": 771,
+    "type_counts": {
+      "auto_renewal": 16,
+      "confidentiality": 42,
+      "governing_law": 27,
+      "indemnification": 19,
+      "ip_assignment": 13,
+      "limitation_of_liability": 20,
+      "non_compete": 28,
+      "other": 234,
+      "termination_for_convenience": 20,
+      "unknown": 352
+    },
+    "unknown_rate": 0.4565,
+    "noise_rate": 0.0039,
+    "mean_confidence": 0.5259,
+    "noisy_examples": [
+      "Account Details for UBS AG: Currency:                USD Correspondent Bank:      UBS AG, STAMFORD BRANCH Swift Address:           UBSWUS33XXX Favour:          ",
+      "Phone: 203.719.1110 Pre Value Payments:      Pre Value Payment           203.719.1110                          Investigations: Post Value Payments:     Post Val",
+      "100 Liverpool Street                          London EC2M 2RH\n\nAddress for notices or communications to the Counterparty:"
+    ]
+  },
+  "new": {
+    "n_documents": 8,
+    "n_segments": 523,
+    "type_counts": {
+      "auto_renewal": 6,
+      "confidentiality": 33,
+      "governing_law": 14,
+      "indemnification": 11,
+      "ip_assignment": 12,
+      "limitation_of_liability": 17,
+      "non_compete": 9,
+      "other": 169,
+      "termination_for_convenience": 13,
+      "unknown": 239
+    },
+    "unknown_rate": 0.457,
+    "noise_rate": 0.0,
+    "mean_confidence": 0.5134,
+    "noisy_examples": []
+  },
+  "thresholds": {
+    "psi": 0.2,
+    "chi2_p": 0.01,
+    "unknown_rate_increase": 0.1,
+    "noise_rate_increase": 0.05,
+    "confidence_drop": 0.1,
+    "min_type_confidence": 0.45
+  }
+}
